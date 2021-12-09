@@ -7,4 +7,4 @@ export const filteredEvents = [
   addEvent('AddressChanged'),
 ] as const;
 
-export type FilteredEventNames = typeof filteredEvents[number];
+export type FilteredEventNames = typeof filteredEvents[number]; // 'NameChanged' | 'AddressChanged'

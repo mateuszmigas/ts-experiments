@@ -19,4 +19,4 @@ const handleEvent = <T extends EventNames[]>(
   handler: (payload: Extract<Events, { name: T[number] }>['payload']) => void
 ) => {};
 
-handleEvent(['AgeChanged', 'CityChanged'], payload => {});
+handleEvent(['AgeChanged', 'CityChanged'], payload => {}); //payload = { id: string; age: number } | { id: string; city: string }
