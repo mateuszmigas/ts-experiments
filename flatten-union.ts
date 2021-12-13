@@ -13,7 +13,7 @@ export type Events =
     };
 
 type ExtractEventType<U extends Events> = U['meta']['name'];
-type EventTypeWithPayload<U extends Events> = U extends unknown
+type EventWithType<U extends Events> = U extends unknown
   ? { type: ExtractEventType<U> } & U
   : never;
 
@@ -21,7 +21,7 @@ const mapToEventWithType = (event: Events) =>
   ({
     type: event.meta.name,
     ...event,
-  } as EventTypeWithPayload<Events>);
+  } as EventWithType<Events>);
 
 const handle = (event: Events) => {
   const mappedEvent = mapToEventWithType(event);
