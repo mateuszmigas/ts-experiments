@@ -100,7 +100,7 @@ export type ActionType = ValueOf<{
   };
 }>;
 
-const executeAction = (action: ActionType) => {
+const mainReducer = (state: State, action: ActionType) => {
   const { type, payload } = action;
   const { sliceSelector, sliceReducer } = actions[type];
   const slice = sliceSelector(state, payload as never);
@@ -109,7 +109,11 @@ const executeAction = (action: ActionType) => {
   return newState;
 };
 
-executeAction({
+const dispatch = (action: ActionType) => {
+  //call redux dispatch
+};
+
+dispatch({
   type: 'panel.tabs.add',
   payload: {
     panelLocation: 'left',
@@ -118,7 +122,7 @@ executeAction({
   },
 });
 
-executeAction({
+dispatch({
   type: 'panel.tabs.rename',
   payload: {
     panelLocation: 'left',
