@@ -1,4 +1,4 @@
-import { ValueOf } from './value-of';
+export type ValueOf<T> = T[keyof T];
 
 //State
 type TabState = {
@@ -17,9 +17,10 @@ type State = {
   leftPanel: PanelState;
   rightPanel: PanelState;
   activePanel: PanelLocation;
+  commandPalette: { isOpen: boolean };
 };
 
-const state: State = {
+let state: State = {
   leftPanel: {
     activeTabIndex: 1,
     tabs: [
@@ -32,6 +33,7 @@ const state: State = {
     tabs: [{ path: '/', name: 'Home' }],
   },
   activePanel: 'left',
+  commandPalette: { isOpen: false },
 };
 
 //Selectors
@@ -72,46 +74,66 @@ const addAction = <TSliceState extends object, TParams, TPayload>(
 const actions = {
   'panel.tabs.add': addAction(
     panelSelector,
-    (state, payload: { name: string; path: string }) => {
+    (slice, payload: { name: string; path: string }) => {
       return {
-        ...state,
-        tabs: [...state.tabs, { name: payload.name, path: payload.path }],
+        ...slice,
+        tabs: [...slice.tabs, { name: payload.name, path: payload.path }],
       };
     },
     { public: true }
   ),
   'panel.tabs.rename': addAction(
     tabSelectorByIndex,
-    (state, payload: { newName: string }) => {
+    (slice, payload: { newName: string }) => {
       return {
-        ...state,
+        ...slice,
         name: payload.newName,
+      };
+    }
+  ),
+  'commandPalette.show': addAction(
+    state => state.commandPalette,
+    slice => {
+      return {
+        ...slice,
+        isOpen: true,
       };
     }
   ),
 } as const;
 
 export type ActionName = keyof typeof actions;
+export type ActionPayload<T extends ActionName> = Parameters<
+  typeof actions[T]['sliceSelector']
+>[1] &
+  Parameters<typeof actions[T]['sliceReducer']>[1];
+
 export type ActionType = ValueOf<{
-  [P in keyof typeof actions]: {
-    type: P;
-    payload: Parameters<typeof actions[P]['sliceSelector']>[1] &
-      Parameters<typeof actions[P]['sliceReducer']>[1];
-  };
+  [P in keyof typeof actions]: ActionPayload<P> extends {}
+    ? {
+        type: P;
+        payload: ActionPayload<P>;
+      }
+    : {
+        type: P;
+      };
 }>;
 
 const mainReducer = (state: State, action: ActionType) => {
-  const { type, payload } = action;
+  const { type, payload } = action as { type: ActionName; payload: never };
   const { sliceSelector, sliceReducer } = actions[type];
-  const slice = sliceSelector(state, payload as never);
+  const slice = sliceSelector(state, payload);
   const newState = { ...state };
-  Object.assign(slice, sliceReducer(slice as never, payload as never));
+  Object.assign(slice, sliceReducer(slice as never, payload));
   return newState;
 };
 
 const dispatch = (action: ActionType) => {
   //call redux dispatch
+  state = mainReducer(state, action);
 };
+
+console.log(JSON.stringify(state));
 
 dispatch({
   type: 'panel.tabs.add',
@@ -122,6 +144,8 @@ dispatch({
   },
 });
 
+console.log(JSON.stringify(state));
+
 dispatch({
   type: 'panel.tabs.rename',
   payload: {
@@ -130,3 +154,11 @@ dispatch({
     newName: 'New Tab Name',
   },
 });
+
+console.log(JSON.stringify(state));
+
+dispatch({
+  type: 'commandPalette.show',
+});
+
+console.log(JSON.stringify(state));
