@@ -18,9 +18,6 @@ type ProxyClient<T extends Record<string | symbol | number, any>> = {
 };
 
 const createProxyClient = <T extends {}>() => {
-  //todo: get server api from somewhere
-  const server = api;
-
   const client = {
     someExtraClientMethod() {
       console.log("extra method");
@@ -28,13 +25,14 @@ const createProxyClient = <T extends {}>() => {
   };
   const handler = {
     get(target, prop, receiver) {
-      if (server.hasOwnProperty(prop)) {
-        return (...args: any[]) => {
-          //todo: calling server logic
-          return server[prop](...args);
-        };
+      if (client.hasOwnProperty(prop)) {
+        return client[prop];
       }
-      return Reflect.get(target, prop, receiver);
+
+      return (...args: any[]) => {
+        //todo: calling server logic, rest/soap, etc
+        return api[prop](...args);
+      };
     },
   };
 
